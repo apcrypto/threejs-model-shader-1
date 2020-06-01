@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Threejs product customiser</title>
+    <link rel="stylesheet" href="./styles/index.css" />
+    <style>
+      .loading {
+        position: fixed;
+        z-index: 50;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        background: #f1f1f1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .loader {
+        -webkit-perspective: 120px;
+        -moz-perspective: 120px;
+        -ms-perspective: 120px;
+        perspective: 120px;
+        width: 100px;
+        height: 100px;
+      }
+
+      .loader:before {
+        content: "";
+        position: absolute;
+        left: 25px;
+        top: 25px;
+        width: 50px;
+        height: 50px;
+        background-color: #ff0000;
+        animation: flip 1s infinite;
+      }
+
+      @keyframes flip {
+        0% {
+          transform: rotate(0);
+        }
+
+        50% {
+          transform: rotateY(180deg);
+        }
+
+        100% {
+          transform: rotateY(180deg) rotateX(180deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <script type="x-shader/x-vertex" id="vertexShader">
+      varying vec2 vUv
+
+      void main() {
+      vUv = uv
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 )
+      }
+    </script>
+    <script type="x-shader/x-fragment" id="fragmentShader">
+      uniform vec3 color
+      uniform sampler2D tDiffuse
+      varying vec2 vUv
+
+      void main() {
+
+      vec4 texel = texture2D( tDiffuse, vUv )
+
+      vec3 luma = vec3( 0.299, 0.587, 0.114 )
+      float v = dot( texel.xyz, luma )
+
+      gl_FragColor = vec4( v * color, texel.w )
+
+      }
+    </script>
+    <!-- The loading element overlays all else until the model is loaded, at which point we remove this element from the DOM -->
+    <div class="loading" id="js-loader"><div class="loader"></div></div>
+    <!-- These toggle the the different parts of the chair that can be edited, note data-option is the key that links to the name of the part in the 3D file -->
+    <div class="options">
+      <div class="option --is-active" data-option="laces">
+        <img src="./assets/laces.png" alt="" />
+      </div>
+      <div class="option" data-option="trim">
+        <img src="./assets/trim.png" alt="" />
+      </div>
+      <div class="option" data-option="side">
+        <img src="./assets/side.png" alt="" />
+      </div>
+      <div class="option" data-option="Vamp">
+        <img src="./assets/vamp.png" alt="" />
+      </div>
+      <div class="option" data-option="stitch">
+        <img src="./assets/stitch.png" alt="" />
+      </div>
+      <div class="option" data-option="rear_sole">
+        <img src="./assets/rear_sole.png" alt="" />
+      </div>
+    </div>
+  </body>
+  <span class="drag-notice" id="js-drag-notice">Drag to rotate 360&#176;</span>
+  <!-- The canvas element is used to draw the 3D scene -->
+  <canvas id="canvas"></canvas>
+  <div class="controls">
+    <div class="info">
+      <div class="info__message">
+        <p>
+          <strong>&nbsp;Grab&nbsp;</strong> to rotate shoe.
+          <!-- <strong>&nbsp;Scroll&nbsp;</strong> to zoom. -->
+          <strong>&nbsp;Drag&nbsp;</strong> swatches to view more.
+        </p>
+      </div>
+    </div>
+
+    <!-- This tray will be filled with colors via JS, and the ability to slide this panel will be added in with a lightweight slider script (no dependency used for this) -->
+    <div id="js-tray" class="tray">
+      <div id="js-tray-slide" class="tray__slide"></div>
+    </div>
+  </div>
+
+  <!-- The main Three.js file -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/108/three.min.js"></script>
+
+  <!-- This brings in the ability to load custom 3D objects in the .gltf file format. Blender allows the ability to export to this format out the box -->
+  <script src="https://cdn.jsdelivr.net/gh/mrdoob/Three.js@r92/examples/js/loaders/GLTFLoader.js"></script>
+
+  <!-- This is a simple to use extension for Three.js that activates all the rotating, dragging and zooming controls we need for both mouse and touch, there isn't a clear CDN for this that I can find -->
+  <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+  <script src="./scripts/index.js"></script>
+</html>
